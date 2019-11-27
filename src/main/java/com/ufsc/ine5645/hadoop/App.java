@@ -15,6 +15,21 @@ import org.apache.hadoop.mapreduce.lib.jobcontrol.JobControl;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
+import com.ufsc.ine5645.hadoop.mappers.ExpensesPerPeriodMapper;
+import com.ufsc.ine5645.hadoop.mappers.ParliamentarySpendingMapper;
+import com.ufsc.ine5645.hadoop.mappers.ParliamentarySpendingStateMapper;
+import com.ufsc.ine5645.hadoop.mappers.PartyMapper;
+import com.ufsc.ine5645.hadoop.mappers.ProductParliamentarySpendingMapper;
+import com.ufsc.ine5645.hadoop.mappers.SalesMapper;
+import com.ufsc.ine5645.hadoop.mappers.StateMapper;
+import com.ufsc.ine5645.hadoop.reducers.ExpensesPerPeriodReducer;
+import com.ufsc.ine5645.hadoop.reducers.ParliamentarySpendingReducer;
+import com.ufsc.ine5645.hadoop.reducers.ParliamentarySpendingStateReducer;
+import com.ufsc.ine5645.hadoop.reducers.PartyReducer;
+import com.ufsc.ine5645.hadoop.reducers.ProductParliamentarySpendingReducer;
+import com.ufsc.ine5645.hadoop.reducers.SalesReducer;
+import com.ufsc.ine5645.hadoop.reducers.StateReducer;
+
 public class App {
 	public static void main(String args[]) {
 		try {
@@ -49,7 +64,7 @@ public class App {
 			job.setOutputFormatClass(TextOutputFormat.class);
 			job.setMapOutputKeyClass(Text.class);
 			job.setMapOutputValueClass(DoubleWritable.class);
-			job.setNumReduceTasks(4);
+			job.setNumReduceTasks(1);
 			job.waitForCompletion(true);
 
 			// Job2
@@ -69,7 +84,7 @@ public class App {
 			job.setOutputFormatClass(TextOutputFormat.class);
 			job.setMapOutputKeyClass(Text.class);
 			job.setMapOutputValueClass(DoubleWritable.class);
-			job.setNumReduceTasks(4);
+			job.setNumReduceTasks(2);
 			job.waitForCompletion(true);
 
 			// Job3
@@ -89,7 +104,7 @@ public class App {
 			job.setOutputFormatClass(TextOutputFormat.class);
 			job.setMapOutputKeyClass(Text.class);
 			job.setMapOutputValueClass(DoubleWritable.class);
-			job.setNumReduceTasks(4);
+			job.setNumReduceTasks(3);
 			job.waitForCompletion(true);
 
 			// Job4
@@ -121,15 +136,55 @@ public class App {
 			FileInputFormat.addInputPath(job, new Path(args[0]));
 			FileOutputFormat.setOutputPath(job, new Path(args[1], "per-period"));
 
-			job.setMapperClass(SalesMapper.class);
-			job.setReducerClass(SalesReducer.class);
+			job.setMapperClass(ExpensesPerPeriodMapper.class);
+			job.setReducerClass(ExpensesPerPeriodReducer.class);
 			job.setOutputKeyClass(Text.class);
 			job.setOutputValueClass(DoubleWritable.class);
 			job.setInputFormatClass(TextInputFormat.class);
 			job.setOutputFormatClass(TextOutputFormat.class);
 			job.setMapOutputKeyClass(Text.class);
 			job.setMapOutputValueClass(DoubleWritable.class);
-			job.setNumReduceTasks(4);
+			job.setNumReduceTasks(1);
+			job.waitForCompletion(true);
+
+			// Job6
+			System.out.println("Starting job6");
+			job = Job.getInstance(config1);
+			job.setJarByClass(App.class);
+			job.setJobName("parliamentary-state");
+
+			FileInputFormat.addInputPath(job, new Path(args[0]));
+			FileOutputFormat.setOutputPath(job, new Path(args[1], "parliamentary-state"));
+
+			job.setMapperClass(ParliamentarySpendingStateMapper.class);
+			job.setReducerClass(ParliamentarySpendingStateReducer.class);
+			job.setOutputKeyClass(Text.class);
+			job.setOutputValueClass(DoubleWritable.class);
+			job.setInputFormatClass(TextInputFormat.class);
+			job.setOutputFormatClass(TextOutputFormat.class);
+			job.setMapOutputKeyClass(Text.class);
+			job.setMapOutputValueClass(DoubleWritable.class);
+			job.setNumReduceTasks(1);
+			job.waitForCompletion(true);
+
+			// Job7
+			System.out.println("Starting job7");
+			job = Job.getInstance(config1);
+			job.setJarByClass(App.class);
+			job.setJobName("state-cost-per-period");
+
+			FileInputFormat.addInputPath(job, new Path(args[0]));
+			FileOutputFormat.setOutputPath(job, new Path(args[1], "state-cost-per-period"));
+
+			job.setMapperClass(StateMapper.class);
+			job.setReducerClass(StateReducer.class);
+			job.setOutputKeyClass(Text.class);
+			job.setOutputValueClass(DoubleWritable.class);
+			job.setInputFormatClass(TextInputFormat.class);
+			job.setOutputFormatClass(TextOutputFormat.class);
+			job.setMapOutputKeyClass(Text.class);
+			job.setMapOutputValueClass(DoubleWritable.class);
+			job.setNumReduceTasks(1);
 			job.waitForCompletion(true);
 
 //			job1(jobControl, job, config1, args);
@@ -149,7 +204,10 @@ public class App {
 		}
 		System.exit(-1);
 	}
-
+	
+	/*
+	 * Methods to run jobs in parallel. Don't work in my machine 
+	 */
 	private static void job7(JobControl jobControl, String[] args) throws IOException {
 		Configuration config = new Configuration();
 
@@ -320,7 +378,5 @@ public class App {
 		ControlledJob controlledJob = new ControlledJob(config1);
 		controlledJob.setJob(job);
 		jobControl.addJob(controlledJob);
-
-
 	}
 }
